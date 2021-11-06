@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+
+## FreshRSS
+
+  ## Suggested procedure to create your Database:
+  ## Change the <password>
+    # docker exec -it mariadb mysql -uroot -p$MYSQL_ROOT_PASSWORD
+    # CREATE DATABASE freshrss CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    # GRANT ALL PRIVILEGES ON freshrss.* TO 'freshrss'@'freshrss.mariadb' IDENTIFIED BY '<password>';
+    # FLUSH PRIVILEGES;
+    # exit
+
+  freshrss:
+    container_name: freshrss
+    image: linuxserver/freshrss:latest
+    domainname: ${DOMAIN_NAME}
+    restart: always
+
+    networks:
+      - proxy
+        #      - mariadb
+    ports:
+      - "82:80"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - $CONTAINER_DATA_DIR/docker/freshrss:/config
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      ## HTTP Routers
+      - "traefik.http.routers.freshrss-secure.entrypoints=websecure"
+      - "traefik.http.routers.freshrss-secure.rule=Host(`$DOMAIN_NAME`)"
+      - "traefik.http.routers.freshrss-secure.service=freshrss"
+      - "traefik.http.routers.freshrss-secure.tls.certresolver=letsencrypt"
+      ## Middlewares
+      #- "traefik.http.middlewares=secureHeaders@file"
+      ## HTTP Services
+      - "traefik.http.services.freshrss.loadbalancer.server.port=80"
+
+networks:
+  proxy:
+    external:
+      name: proxy
+    #    external: true
+    #  mariadb:
+    #    external: true
