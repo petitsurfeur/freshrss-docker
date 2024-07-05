@@ -1,4 +1,3 @@
-version: "3.7"
 services:
 
 ## FreshRSS
@@ -28,8 +27,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${CONTAINER_DATA_DIR}/docker/freshrss:/config
     environment:
-      - PUID=$PUID
-      - PGID=$PGID
+      #      - PUID=$PUID
+      #      - PGID=$PGID
       - TZ=$TZ
     labels:
       - "traefik.enable=true"
@@ -53,8 +52,7 @@ services:
 
 networks:
   proxy:
-    external:
       name: proxy
-    #    external: true
+      external: true
     #  mariadb:
     #    external: true
